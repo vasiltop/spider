@@ -1,0 +1,10 @@
+{
+  "name": "spider",
+  "private": true,
+  "devDependencies": {
+    "husky": "^9.0.0"
+  },
+  "scripts": {
+    "prepare": "husky"
+  }
+}
