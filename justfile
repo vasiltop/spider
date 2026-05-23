@@ -24,6 +24,10 @@ dev-web:
 	just validate
 	cd web && pnpm dev
 
+dev-crawler:
+	just validate
+	cd crawler && odin run src
+
 dev-db:
 	docker compose up -d db
 

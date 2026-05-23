@@ -36,7 +36,7 @@ app.onError((err, c) => {
 
 serve({
 	fetch: app.fetch,
-	port: parseInt(process.env.API_PORT || "5000")
+	port: parseInt(process.env.API_PORT || '3000')
 }, (info) => {
 	console.log(`Server is running on http://localhost:${info.port}`);
 })
