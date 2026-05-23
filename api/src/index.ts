@@ -2,12 +2,12 @@ import { serve } from '@hono/node-server'
 import { OpenAPIHono } from '@hono/zod-openapi'
 import { Scalar } from "@scalar/hono-api-reference";
 import { cors } from 'hono/cors'
-import test_routes from './routes/test.js';
+import search_routes from './routes/search.js';
 
 const app = new OpenAPIHono();
 app.use("*", cors());
 
-app.route("/test/", test_routes);
+app.route("/search", search_routes);
 
 app.doc('/openapi.json', {
 	openapi: '3.0.0',

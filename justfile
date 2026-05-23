@@ -36,3 +36,10 @@ push-db:
 
 sync-api:
 	cd web && pnpm exec openapi-typescript http://localhost:$API_PORT/openapi.json --output src/api/api_paths.ts
+
+seed-db:
+	cd api && pnpm exec tsx src/seed.ts
+
+migrate-db:
+	cd api && pnpm exec tsx src/db/migrate.ts
+

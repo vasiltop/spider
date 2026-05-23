@@ -4,30 +4,40 @@
  */
 
 export interface paths {
-    "/test/a": {
+    "/search": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
+        /** Search documents */
         get: {
             parameters: {
-                query?: never;
+                query: {
+                    q: string;
+                };
                 header?: never;
                 path?: never;
                 cookie?: never;
             };
             requestBody?: never;
             responses: {
-                /** @description Successful fetch data payload */
+                /** @description Search results */
                 200: {
                     headers: {
                         [name: string]: unknown;
                     };
                     content: {
                         "application/json": {
-                            test: string;
+                            results: {
+                                id: number;
+                                title: string;
+                                url: string;
+                                content_snippet: string;
+                                created_at: string;
+                            }[];
+                            cached: boolean;
                         };
                     };
                 };

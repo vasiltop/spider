@@ -1,4 +1,5 @@
-import { pgTable, uuid, text, timestamp, serial } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, text, timestamp, serial, index } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
 
 export const users_table = pgTable('users', {
 	id: uuid('id').defaultRandom().primaryKey(),
@@ -12,5 +13,10 @@ export const documents_table = pgTable('documents', {
   url: text('url').unique().notNull(),
   title: text('title').notNull(),
   content: text('content').notNull(),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-});
+  created_at: timestamp('created_at').defaultNow().notNull(),
+}, (table) => [
+  index('search_idx').using(
+    'gin',
+    sql`to_tsvector('english', ${table.title} || ' ' || ${table.content})`
+  ),
+]);
