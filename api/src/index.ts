@@ -3,11 +3,13 @@ import { OpenAPIHono } from '@hono/zod-openapi'
 import { Scalar } from "@scalar/hono-api-reference";
 import { cors } from 'hono/cors'
 import search_routes from './routes/search.js';
+import admin_routes from './routes/admin.js';
 
 const app = new OpenAPIHono();
 app.use("*", cors());
 
 app.route("/search", search_routes);
+app.route("/admin", admin_routes);
 
 app.doc('/openapi.json', {
 	openapi: '3.0.0',
