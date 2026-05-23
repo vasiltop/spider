@@ -17,10 +17,18 @@ setup:
 	cd web && pnpm install
 
 dev-api:
+	just validate
 	cd api && pnpm dev
 
 dev-web:
+	just validate
 	cd web && pnpm dev
 
+dev-db:
+	docker compose up -d db
+
+push-db:
+	cd api && pnpm exec drizzle-kit push
+
 sync-api:
-	pnpx openapi-typescript http://localhost:$API_PORT/openapi.json --output web/src/api/api_paths.ts
+	cd web && pnpm exec openapi-typescript http://localhost:$API_PORT/openapi.json --output src/api/api_paths.ts

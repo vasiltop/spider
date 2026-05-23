@@ -1,34 +1,13 @@
 import { serve } from '@hono/node-server'
-import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi'
+import { OpenAPIHono } from '@hono/zod-openapi'
+import { Scalar } from "@scalar/hono-api-reference";
 import { cors } from 'hono/cors'
+import test_routes from './routes/test.js';
 
 const app = new OpenAPIHono();
 app.use("*", cors());
 
-const Test = z.object({
-	test: z.string()
-});
-
-const TestRoute = createRoute({
-	method: 'get',
-	path: '/test',
-	responses: {
-		200: {
-			content: {
-				'application/json': {
-					schema: Test,
-				}
-			},
-			description: 'Test',
-		}
-	}
-});
-
-app.openapi(TestRoute, (c) => {
-	return c.json({
-		test: 'hello'
-	});
-});
+app.route("/test/", test_routes);
 
 app.doc('/openapi.json', {
 	openapi: '3.0.0',
@@ -36,6 +15,23 @@ app.doc('/openapi.json', {
 		version: process.env.API_VERSION || "1.0.0",
 		title: 'spider api'
 	}
+});
+
+app.get(
+  '/docs',
+  Scalar({
+    url: "/openapi.json",
+    pageTitle: "spider api",
+  })
+);
+
+app.onError((err, c) => {
+  return c.json(
+    {
+      error: err.message,
+    },
+    500
+  );
 });
 
 serve({

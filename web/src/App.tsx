@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 function App() {
 	useEffect(() => {
 		async function test() {
-			const { data, error } = await client.GET('/test');
+			const { data, error } = await client.GET('/test/a');
 
 			console.log(data, error);
 		}

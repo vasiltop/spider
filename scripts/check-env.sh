@@ -40,14 +40,14 @@ BEGIN {
 END {
     for (key in env) {
         if (!(key in example)) {
-            print "❌ Key \"" key "\" has a discrepancy"
+            print "❌ env var \"" key "\" has a discrepancy"
             bad=1
         }
     }
 
     for (key in example) {
         if (!(key in env)) {
-            print "❌ Key \"" key "\" has a discrepancy"
+            print "❌ env var \"" key "\" has a discrepancy"
             bad=1
         }
     }

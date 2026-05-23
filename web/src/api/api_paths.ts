@@ -4,7 +4,7 @@
  */
 
 export interface paths {
-    "/test": {
+    "/test/a": {
         parameters: {
             query?: never;
             header?: never;
@@ -20,7 +20,7 @@ export interface paths {
             };
             requestBody?: never;
             responses: {
-                /** @description Test */
+                /** @description Successful fetch data payload */
                 200: {
                     headers: {
                         [name: string]: unknown;
@@ -28,6 +28,39 @@ export interface paths {
                     content: {
                         "application/json": {
                             test: string;
+                        };
+                    };
+                };
+                /** @description Invalid payload properties or parameters */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: string;
+                        };
+                    };
+                };
+                /** @description Expired or invalid session token */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: string;
+                        };
+                    };
+                };
+                /** @description Internal application database crash */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: string;
                         };
                     };
                 };
