@@ -1,0 +1,7 @@
+   Compiling spider-crawler v0.1.0 (/home/v/code/spider/crawler)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.82s
+     Running `target/debug/spider-crawler`
+
+thread 'main' (12430) panicked at src/main.rs:10:43:
+DATABASE_URL must be set: NotPresent
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace

@@ -26,7 +26,7 @@ dev-web:
 
 dev-crawler:
 	just validate
-	cd crawler && odin run src
+	cd crawler && cargo run
 
 dev-db:
 	docker compose up -d db
