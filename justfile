@@ -40,6 +40,5 @@ sync-api:
 seed-db:
 	cd api && pnpm exec tsx src/seed.ts
 
-migrate-db:
-	cd api && pnpm exec tsx src/db/migrate.ts
-
+db-shell:
+    psql -U postgres -h localhost -p 5432 -d spider

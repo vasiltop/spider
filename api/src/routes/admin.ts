@@ -5,6 +5,8 @@ import { documents_table } from '../db/schema.js';
 import { redis } from '../redis.js';
 import { json_content, json_error } from './index.js';
 
+const app = new OpenAPIHono();
+
 const seed_route = createRoute({
   method: 'post',
   path: '/scraper/seed',
@@ -33,6 +35,22 @@ const seed_route = createRoute({
   },
 });
 
+app.openapi(seed_route, async (c) => {
+  try {
+    const { urls } = c.req.valid('json');
+    if (urls.length === 0) {
+      return c.json({ added: 0, message: 'No URLs provided' }, 200);
+    }
+
+    const added = await redis.lpush('crawler:queue', ...urls);
+
+    return c.json({ added, message: 'Successfully seeded URLs' }, 200);
+  } catch (error: any) {
+    console.error('Seed error:', error);
+    return c.json({ error: error.message || 'Internal server error' }, 500);
+  }
+});
+
 const status_route = createRoute({
   method: 'get',
   path: '/scraper/status',
@@ -54,51 +72,10 @@ const status_route = createRoute({
   },
 });
 
-const documents_route = createRoute({
-  method: 'get',
-  path: '/documents',
-  summary: 'Get all parsed documents',
-  responses: {
-    200: json_content(
-      z.object({
-        documents: z.array(
-          z.object({
-            id: z.number(),
-            title: z.string(),
-            url: z.string(),
-            created_at: z.string(),
-          })
-        ),
-      }),
-      'List of parsed documents'
-    ),
-    500: json_error('Internal server error'),
-  },
-});
-
-const app = new OpenAPIHono();
-
-app.openapi(seed_route, async (c) => {
-  try {
-    const { urls } = c.req.valid('json');
-    if (urls.length === 0) {
-      return c.json({ added: 0, message: 'No URLs provided' }, 200);
-    }
-
-    const added = await redis.lpush('crawler:queue', ...urls);
-
-    return c.json({ added, message: 'Successfully seeded URLs' }, 200);
-  } catch (error: any) {
-    console.error('Seed error:', error);
-    return c.json({ error: error.message || 'Internal server error' }, 500);
-  }
-});
-
 app.openapi(status_route, async (c) => {
   try {
     const queue_length = await redis.llen('crawler:queue');
     
-    // Find all keys matching crawler:status:*
     const keys = await redis.keys('crawler:status:*');
     
     const active_crawlers: { id: string, url: string }[] = [];
@@ -123,6 +100,28 @@ app.openapi(status_route, async (c) => {
   }
 });
 
+const documents_route = createRoute({
+  method: 'get',
+  path: '/documents',
+  summary: 'Get all parsed documents',
+  responses: {
+    200: json_content(
+      z.object({
+        documents: z.array(
+          z.object({
+            id: z.number(),
+            title: z.string(),
+            url: z.string(),
+            created_at: z.string(),
+          })
+        ),
+      }),
+      'List of parsed documents'
+    ),
+    500: json_error('Internal server error'),
+  },
+});
+
 app.openapi(documents_route, async (c) => {
   try {
     const results = await db
@@ -134,7 +133,7 @@ app.openapi(documents_route, async (c) => {
       })
       .from(documents_table)
       .orderBy(desc(documents_table.created_at))
-      .limit(50); // Get latest 50 documents for the dashboard
+      .limit(50);
 
     const formatted_documents = results.map(r => ({
       ...r,

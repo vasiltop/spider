@@ -9,11 +9,15 @@
   "dependencies": {
     "@hono/node-server": "^1.19.14",
     "@hono/zod-openapi": "^1.4.0",
+    "@lucia-auth/adapter-drizzle": "^1.1.0",
+    "@node-rs/argon2": "^2.0.2",
     "@scalar/hono-api-reference": "^0.10.18",
     "dotenv": "^17.4.2",
     "drizzle-orm": "^0.45.2",
     "hono": "^4.12.21",
     "ioredis": "^5.10.1",
+    "lucia": "^3.2.2",
+    "oslo": "^1.2.1",
     "pg": "^8.21.0",
     "zod": "^4.4.3"
   },

@@ -4,8 +4,15 @@ import { sql } from 'drizzle-orm';
 export const users_table = pgTable('users', {
 	id: uuid('id').defaultRandom().primaryKey(),
 	username: text('username').notNull(),
+	password_hash: text('password_hash').notNull(),
 	role: text('role').default('user').notNull(),
 	created_at: timestamp("created_at").defaultNow(),
+});
+
+export const sessions_table = pgTable('sessions', {
+	id: text('id').primaryKey(),
+	user_id: uuid('user_id').notNull().references(() => users_table.id, { onDelete: 'cascade' }),
+	expiresAt: timestamp('expires_at', { withTimezone: true, mode: 'date' }).notNull(),
 });
 
 export const documents_table = pgTable('documents', {

@@ -5,6 +5,8 @@ import { documents_table } from '../db/schema.js';
 import { redis } from '../redis.js';
 import { json_content, json_error } from './index.js';
 
+const app = new OpenAPIHono();
+
 const search_route = createRoute({
   method: 'get',
   path: '/',
@@ -39,7 +41,6 @@ const search_route = createRoute({
   },
 });
 
-const app = new OpenAPIHono();
 
 app.openapi(search_route, async (c) => {
   try {

@@ -4,12 +4,17 @@ import { Scalar } from "@scalar/hono-api-reference";
 import { cors } from 'hono/cors'
 import search_routes from './routes/search.js';
 import admin_routes from './routes/admin.js';
+import auth_routes from './routes/auth.js';
+import { type Env } from './middleware.js';
 
-const app = new OpenAPIHono();
-app.use("*", cors());
+const app = new OpenAPIHono<Env>();
+app.use("*", cors({
+	credentials: true,
+}));
 
 app.route("/search", search_routes);
 app.route("/admin", admin_routes);
+app.route("/auth", auth_routes);
 
 app.doc('/openapi.json', {
 	openapi: '3.0.0',

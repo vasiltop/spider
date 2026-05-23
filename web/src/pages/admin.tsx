@@ -1,19 +1,21 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
+import { useNavigate } from "react-router-dom";
+import { auth_context } from '../AuthContext';
 import { client } from '../api';
 
 function AdminPage() {
   const [seed_urls, set_seed_urls] = useState('');
   const [is_seeding, set_is_seeding] = useState(false);
   const [seed_message, set_seed_message] = useState('');
-  
-   
   const [crawlers, set_crawlers] = useState<any[]>([]);
   const [queue_length, set_queue_length] = useState(0);
-  
-   
   const [documents, set_documents] = useState<any[]>([]);
+	const navigate = useNavigate();
+	const { is_admin } = useContext(auth_context);
 
   useEffect(() => {
+		if (!is_admin) navigate("/");
+
     const fetch_status = async () => {
       try {
         const { data } = await client.GET('/admin/scraper/status');
@@ -40,7 +42,6 @@ function AdminPage() {
     fetch_status();
     fetch_documents();
 
-    // Poll status every 2 seconds
     const interval = setInterval(() => {
       fetch_status();
       fetch_documents();
@@ -91,7 +92,6 @@ function AdminPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {/* Seed URLs Section */}
         <div className="bg-white shadow rounded-lg border border-gray-200 overflow-hidden">
           <div className="px-4 py-5 sm:p-6">
             <h3 className="text-lg leading-6 font-medium text-gray-900">Launch Crawler</h3>
@@ -125,7 +125,6 @@ function AdminPage() {
           </div>
         </div>
 
-        {/* Live Status Section */}
         <div className="bg-white shadow rounded-lg border border-gray-200 overflow-hidden">
           <div className="px-4 py-5 sm:p-6 flex flex-col h-full">
             <div className="flex justify-between items-center mb-4">
@@ -163,7 +162,6 @@ function AdminPage() {
         </div>
       </div>
 
-      {/* Parsed Documents Table */}
       <div className="bg-white shadow rounded-lg border border-gray-200 overflow-hidden">
         <div className="px-4 py-5 border-b border-gray-200 sm:px-6">
           <h3 className="text-lg leading-6 font-medium text-gray-900">Recently Parsed Documents</h3>
