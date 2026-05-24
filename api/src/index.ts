@@ -12,9 +12,9 @@ app.use("*", cors({
 	credentials: true,
 }));
 
-app.route("/search", search_routes);
-app.route("/admin", admin_routes);
-app.route("/auth", auth_routes);
+app.route('/search', search_routes);
+app.route('/admin', admin_routes);
+app.route('/auth', auth_routes);
 
 app.doc('/openapi.json', {
 	openapi: '3.0.0',
@@ -27,8 +27,8 @@ app.doc('/openapi.json', {
 app.get(
   '/docs',
   Scalar({
-    url: "/openapi.json",
-    pageTitle: "spider api",
+    url: process.env.NODE_ENV == 'production' ? '/api/openapi.json' : '/openapi.json',
+    pageTitle: 'spider api',
   })
 );
 

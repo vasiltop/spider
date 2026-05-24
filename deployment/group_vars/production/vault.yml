@@ -1,0 +1,9 @@
+postgres_db_name: "{{ vault_postgres_db_name }}"
+postgres_db_user: "{{ vault_postgres_db_user }}"
+postgres_db_password: "{{ vault_postgres_db_password }}"
+redis_password: "{{ vault_redis_password }}"
+
+vault_postgres_db_name: "spider_production"
+vault_postgres_db_user: "spider_admin"
+vault_postgres_db_password: "root"
+vault_redis_password: "root"

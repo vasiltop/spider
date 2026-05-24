@@ -1,5 +1,4 @@
-import { pgTable, uuid, text, timestamp, serial, index } from 'drizzle-orm/pg-core';
-import { sql } from 'drizzle-orm';
+import { pgTable, uuid, text, timestamp, serial, index, customType } from 'drizzle-orm/pg-core';
 
 export const users_table = pgTable('users', {
 	id: uuid('id').defaultRandom().primaryKey(),
@@ -15,15 +14,17 @@ export const sessions_table = pgTable('sessions', {
 	expiresAt: timestamp('expires_at', { withTimezone: true, mode: 'date' }).notNull(),
 });
 
+const tsvector = customType<{ data: string }>({
+  dataType: () => 'tsvector',
+});
+
 export const documents_table = pgTable('documents', {
-	id: serial('id').primaryKey(),
+  id: serial('id').primaryKey(),
   url: text('url').unique().notNull(),
   title: text('title').notNull(),
   content: text('content').notNull(),
+	text_search_vector: tsvector('text_search_vector'),
   created_at: timestamp('created_at').defaultNow().notNull(),
 }, (table) => [
-  index('search_idx').using(
-    'gin',
-    sql`to_tsvector('english', ${table.title} || ' ' || ${table.content})`
-  ),
+  index('search_idx').using('gin', table.text_search_vector),
 ]);

@@ -10,6 +10,9 @@ check-env:
 validate:
 	just check-env
 
+deploy:
+	ansible-playbook -i deployment/inventory.ini deployment/deploy.yml
+
 setup:
 	chmod +x scripts/check-env.sh
 	pnpm exec husky init
@@ -34,11 +37,18 @@ dev-db:
 push-db:
 	cd api && pnpm exec drizzle-kit push
 
-sync-api:
-	cd web && pnpm exec openapi-typescript http://localhost:$API_PORT/openapi.json --output src/api/api_paths.ts
+generate-db:
+	cd api && pnpm exec drizzle-kit generate
+
+migrate-db:
+    cd api && pnpm exec drizzle-kit generate
+    cd api && pnpm exec drizzle-kit migrate 
 
 seed-db:
 	cd api && pnpm exec tsx src/seed.ts
 
-db-shell:
+shell-db:
     psql -U postgres -h localhost -p 5432 -d spider
+
+sync-api:
+	cd web && pnpm exec openapi-typescript http://localhost:$API_PORT/api/openapi.json --output src/api/api_paths.ts

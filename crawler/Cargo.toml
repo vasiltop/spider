@@ -10,3 +10,4 @@ scraper = "0.20"
 redis = { version = "0.27", features = ["tokio-comp"] }
 sqlx = { version = "0.8", features = ["postgres", "runtime-tokio-rustls"] }
 uuid = { version = "1.10", features = ["v4", "fast-rng"] }
+url = "2.5.8"

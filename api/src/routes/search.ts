@@ -52,11 +52,8 @@ app.openapi(search_route, async (c) => {
       return c.json({ results: JSON.parse(cached_data), cached: true }, 200);
     }
 
-    const search_vector = sql`to_tsvector('english', ${documents_table.title} || ' ' || ${documents_table.content})`;
     const search_query = sql`plainto_tsquery('english', ${q})`;
     
-    const rank = sql`ts_rank(${search_vector}, ${search_query})`;
-
     const results = await db
       .select({
         id: documents_table.id,
@@ -66,8 +63,8 @@ app.openapi(search_route, async (c) => {
         created_at: documents_table.created_at,
       })
       .from(documents_table)
-      .where(sql`${search_vector} @@ ${search_query}`)
-      .orderBy(desc(rank))
+      .where(sql`${documents_table.text_search_vector} @@ ${search_query}`)
+      .orderBy(desc(sql`ts_rank(${documents_table.text_search_vector}, ${search_query})`))
       .limit(20);
 
     const formatted_results = results.map(r => ({

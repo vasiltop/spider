@@ -2,6 +2,7 @@ use sqlx::postgres::PgPoolOptions;
 use std::env;
 use std::time::Duration;
 use uuid::Uuid;
+use url::Url;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -41,35 +42,59 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             let status_key = format!("crawler:status:{}", worker_id);
 
             loop {
-                let _: Result<(), redis::RedisError> = redis::cmd("SETEX")
-                    .arg(&status_key)
-                    .arg(10)
-                    .arg("Idle")
-                    .query_async(&mut redis_conn)
-                    .await;
-
-                let url: Option<String> = redis::cmd("RPOP")
+                let result: Option<(String, String)> = redis::cmd("BRPOP")
                     .arg("crawler:queue")
+                    .arg(2)
                     .query_async(&mut redis_conn)
                     .await
                     .unwrap_or(None);
 
-                if let Some(url) = url {
+                if let Some((_, current_url)) = result {
                     let _: Result<(), redis::RedisError> = redis::cmd("SETEX")
                         .arg(&status_key)
                         .arg(60)
-                        .arg(&url)
+                        .arg(&current_url)
                         .query_async(&mut redis_conn)
                         .await;
 
-                    println!("Worker {} scraping: {}", worker_id, url);
+                    println!("Worker {} scraping: {}", worker_id, current_url);
                     
-                    match scrape_and_save(&url, &req_client, &db_pool).await {
-                        Ok(_) => println!("Worker {} finished: {}", worker_id, url),
-                        Err(e) => eprintln!("Worker {} failed on {}: {}", worker_id, url, e),
+                    match scrape_and_save(&current_url, &req_client, &db_pool).await {
+                        Ok(new_links) => {
+                            println!("Worker {} finished: {} (Found {} links)", worker_id, current_url, new_links.len());
+                            
+                            let mut links_to_queue = Vec::new();
+                            
+                            for link in new_links {
+                                let is_new: bool = redis::cmd("SADD")
+                                    .arg("crawler:visited")
+                                    .arg(&link)
+                                    .query_async(&mut redis_conn)
+                                    .await
+                                    .unwrap_or(false);
+                                
+                                if is_new {
+                                    links_to_queue.push(link);
+                                }
+                            }
+
+                            if !links_to_queue.is_empty() {
+                                let _: Result<(), redis::RedisError> = redis::cmd("LPUSH")
+                                    .arg("crawler:queue")
+                                    .arg(&links_to_queue)
+                                    .query_async(&mut redis_conn)
+                                    .await;
+                            }
+                        }
+                        Err(e) => eprintln!("Worker {} failed on {}: {}", worker_id, current_url, e),
                     }
                 } else {
-                    tokio::time::sleep(Duration::from_secs(2)).await;
+                    let _: Result<(), redis::RedisError> = redis::cmd("SETEX")
+                        .arg(&status_key)
+                        .arg(10)
+                        .arg("Idle")
+                        .query_async(&mut redis_conn)
+                        .await;
                 }
             }
         }));
@@ -86,16 +111,17 @@ async fn scrape_and_save(
     url: &str,
     client: &reqwest::Client,
     db: &sqlx::PgPool,
-) -> Result<(), String> {
+) -> Result<Vec<String>, String> {
     let resp = client.get(url).send().await.map_err(|e| e.to_string())?;
     
     if !resp.status().is_success() {
         return Err(format!("HTTP {}", resp.status()));
     }
 
+    let base_url = Url::parse(url).map_err(|e| e.to_string())?;
     let html = resp.text().await.map_err(|e| e.to_string())?;
     
-    let (title, content) = {
+    let (title, content, extracted_links) = {
         let document = scraper::Html::parse_document(&html);
         
         let title = {
@@ -112,10 +138,25 @@ async fn scrape_and_save(
                 .unwrap_or_default()
         };
 
+        let mut links = Vec::new();
+        let link_selector = scraper::Selector::parse("a[href]").unwrap();
+        
+        for element in document.select(&link_selector) {
+            if let Some(href) = element.value().attr("href") {
+                if let Ok(resolved_url) = base_url.join(href) {
+                    if resolved_url.scheme() == "http" || resolved_url.scheme() == "https" {
+                        let mut clean_url = resolved_url.clone();
+                        clean_url.set_fragment(None);
+                        links.push(clean_url.to_string());
+                    }
+                }
+            }
+        }
+
         let content = content.split_whitespace().collect::<Vec<_>>().join(" ");
         let title = title.trim().to_string();
 
-        (title, content)
+        (title, content, links)
     };
 
     sqlx::query("INSERT INTO documents (url, title, content) VALUES ($1, $2, $3) ON CONFLICT (url) DO NOTHING")
@@ -126,5 +167,5 @@ async fn scrape_and_save(
         .await
         .map_err(|e| e.to_string())?;
 
-    Ok(())
+    Ok(extracted_links)
 }

@@ -7,7 +7,10 @@ import { useContext } from 'react';
 import { AuthProvider, auth_context } from './AuthContext';
 
 function Layout({ children }: { children: React.ReactNode }) {
-	const { user, is_admin, is_loading, logout } = useContext(auth_context);
+	const auth = useContext(auth_context);
+	if (!auth) return (<> loading </>);
+
+	const { user, is_admin, is_loading, logout } = auth;
 	const location = useLocation();
 	const navigate = useNavigate();
 

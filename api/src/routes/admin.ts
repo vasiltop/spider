@@ -1,5 +1,5 @@
 import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi';
-import { sql, desc } from 'drizzle-orm';
+import { desc } from 'drizzle-orm';
 import { db } from '../db/index.js';
 import { documents_table } from '../db/schema.js';
 import { redis } from '../redis.js';
@@ -16,7 +16,7 @@ const seed_route = createRoute({
       content: {
         'application/json': {
           schema: z.object({
-            urls: z.array(z.string().url()),
+            urls: z.array(z.string()),
           }),
         },
       },

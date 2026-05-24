@@ -11,7 +11,11 @@ function AdminPage() {
   const [queue_length, set_queue_length] = useState(0);
   const [documents, set_documents] = useState<any[]>([]);
 	const navigate = useNavigate();
-	const { is_admin } = useContext(auth_context);
+
+	const auth = useContext(auth_context);
+	if (!auth) return (<> loading </>);
+
+	const { is_admin } = auth;
 
   useEffect(() => {
 		if (!is_admin) navigate("/");

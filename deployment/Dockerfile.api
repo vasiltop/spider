@@ -1,0 +1,18 @@
+FROM node:25-alpine
+
+RUN npm install -g pnpm
+
+WORKDIR /app
+
+COPY api/package.json api/pnpm-workspace.yaml api/pnpm-lock.yaml ./
+COPY api/package.json ./api/
+
+RUN pnpm install --frozen-lockfile
+
+COPY api/ ./api/
+
+WORKDIR /app/api
+
+RUN pnpm build
+
+CMD ["node", "dist/index.js"]

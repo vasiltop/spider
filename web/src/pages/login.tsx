@@ -12,7 +12,10 @@ function LoginPage() {
 	const [is_submitting, set_is_submitting] = useState(false);
 	const [error_message, set_error_message] = useState('');
 	const [success_message, set_success_message] = useState('');
-	const { login } = useContext(auth_context);
+
+	const auth = useContext(auth_context);
+	if (!auth) return (<> loading </>);
+	const { login } = auth;
 
 	const navigate = useNavigate();
 

@@ -1,0 +1,33 @@
+---
+- name: Deploy Frontend and API to Production Server
+  hosts: production
+  become: yes
+
+  vars:
+    app_dir: "/opt/spider"
+    api_port: "3000"
+    api_version: "0.0.1"
+    node_env: "production"
+    vite_api_url: "https://spider.vasiltopalovic.dev/api"
+
+  tasks:
+    - name: Clone or update project repository
+      ansible.builtin.git:
+        repo: 'https://github.com/vasiltop/spider.git'
+        dest: /opt/spider
+        version: main
+        update: yes
+        force: yes
+
+    - name: Generate production .env file from Vault template
+      template:
+        src: ".env.j2"
+        dest: "{{ app_dir }}/deployment/.env"
+        mode: '0600'
+
+    - name: Pull, build, and launch Docker containers
+      community.docker.docker_compose_v2:
+        project_src: "/opt/spider/deployment"
+        build: always
+        state: present
+        recreate: always
