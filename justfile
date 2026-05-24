@@ -1,6 +1,9 @@
 set dotenv-load := true
 set quiet := true
 
+VAULT := "deployment/group_vars/production/vault.yml"
+PASS   := ".vault_pass"
+
 default:
 	just --list
 
@@ -10,14 +13,27 @@ check-env:
 validate:
 	just check-env
 
-deploy:
-	ansible-playbook -i deployment/inventory.ini deployment/deploy.yml
-
 setup:
 	chmod +x scripts/check-env.sh
 	pnpm exec husky init
 	cd api && pnpm install
 	cd web && pnpm install
+
+deploy:
+    ansible-playbook -i deployment/inventory.ini deployment/deploy.yml \
+      --vault-password-file .vault_pass
+
+encrypt:
+    ansible-vault encrypt {{VAULT}} --vault-password-file {{PASS}}
+
+decrypt:
+    ansible-vault decrypt {{VAULT}} --vault-password-file {{PASS}}
+
+edit-vault:
+    ansible-vault edit {{VAULT}} --vault-password-file {{PASS}}
+
+view-vault:
+    ansible-vault view {{VAULT}} --vault-password-file {{PASS}}
 
 dev-api:
 	just validate
