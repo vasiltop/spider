@@ -2,7 +2,7 @@ set dotenv-load := true
 set quiet := true
 
 VAULT := "deployment/group_vars/production/vault.yml"
-PASS   := ".vault_pass"
+PASS := ".vault_pass"
 
 default:
 	just --list
@@ -18,6 +18,7 @@ setup:
 	pnpm exec husky init
 	cd api && pnpm install
 	cd web && pnpm install
+	just migrate-db
 
 deploy:
     ansible-playbook -i deployment/inventory.ini deployment/deploy.yml \
